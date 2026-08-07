@@ -1,0 +1,38 @@
+<Window x:Class="WinHardwareMultitool.EmergencyDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ACİL DURUM"
+        Height="240" Width="440"
+        WindowStartupLocation="CenterOwner"
+        Background="#B71C1C"
+        Topmost="True"
+        ResizeMode="NoResize"
+        WindowStyle="ToolWindow">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="⚠ TERMAL GÜVENLİK - ACİL DURUM"
+                   FontSize="18" FontWeight="Bold"
+                   Foreground="White"
+                   TextWrapping="Wrap"/>
+
+        <TextBlock x:Name="MessageText"
+                   Grid.Row="1"
+                   Margin="0,16,0,0"
+                   FontSize="14"
+                   Foreground="White"
+                   TextWrapping="Wrap"/>
+
+        <Button Grid.Row="2"
+                Content="TAMAM"
+                Width="120" Height="34"
+                HorizontalAlignment="Right"
+                Margin="0,16,0,0"
+                Click="OnOkClick"/>
+    </Grid>
+</Window>

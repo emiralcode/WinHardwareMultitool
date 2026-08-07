@@ -1,0 +1,415 @@
+<Window x:Class="WinHardwareMultitool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:WinHardwareMultitool.Converters"
+        Title="Windows Hardware Multitool &amp; Safety Guard"
+        Height="860" Width="1260"
+        MinHeight="700" MinWidth="1040"
+        FontFamily="Segoe UI">
+
+    <Window.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#16171B" Offset="0"/>
+            <GradientStop Color="#1E2128" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
+
+    <Window.Resources>
+
+        <DropShadowEffect x:Key="CardShadow" Color="Black" Direction="270" ShadowDepth="3" BlurRadius="18" Opacity="0.35"/>
+        <conv:LogSeverityToBrushConverter x:Key="LogSeverityConverter"/>
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#262930"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#33363F"/>
+            <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+        </Style>
+
+        <Style x:Key="CardHeaderText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#9BA0AA"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="HeroValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="34"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,10,0,2"/>
+        </Style>
+
+        <Style x:Key="StatRow" TargetType="Grid">
+            <Setter Property="Margin" Value="0,3"/>
+        </Style>
+
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#82868F"/>
+            <Setter Property="FontSize" Value="12.5"/>
+        </Style>
+
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#E8E9EC"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Background" Value="#3A3E48"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.85"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SmallLinkButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Background" Value="#33363F"/>
+        </Style>
+
+        <Style x:Key="ThinProgressBar" TargetType="ProgressBar">
+            <Setter Property="Height" Value="6"/>
+            <Setter Property="Minimum" Value="0"/>
+            <Setter Property="Maximum" Value="100"/>
+            <Setter Property="Background" Value="#3A3E48"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style x:Key="SparkBox" TargetType="Border">
+            <Setter Property="Background" Value="#1C1E23"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Margin" Value="0,12,0,0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+
+        <Style x:Key="IconBadge" TargetType="Border">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <Style TargetType="Expander">
+            <Setter Property="Foreground" Value="#9BA0AA"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#3A3E48"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,5"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#3A3E48"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Safety banner -->
+        <Border Grid.Row="0" Background="{Binding SafetyLevelBrush}" CornerRadius="24" Padding="18,12" Margin="6,4,6,10"
+                Effect="{StaticResource CardShadow}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Ellipse Width="9" Height="9" Fill="Black" Opacity="0.55" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="{Binding SafetyLevelText, StringFormat='Sistem Güvenlik Durumu: {0}'}"
+                           FontWeight="Bold" FontSize="15" Foreground="Black"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Dashboard cards -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- CPU -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource IconBadge}" Background="#26314A">
+                            <Canvas Width="20" Height="20">
+                                <Rectangle Canvas.Left="4" Canvas.Top="4" Width="12" Height="12" RadiusX="2" RadiusY="2"
+                                           Stroke="#6FB1F5" StrokeThickness="1.6"/>
+                                <Rectangle Canvas.Left="9" Canvas.Top="0" Width="2" Height="4" Fill="#6FB1F5"/>
+                                <Rectangle Canvas.Left="9" Canvas.Top="16" Width="2" Height="4" Fill="#6FB1F5"/>
+                                <Rectangle Canvas.Left="0" Canvas.Top="9" Width="4" Height="2" Fill="#6FB1F5"/>
+                                <Rectangle Canvas.Left="16" Canvas.Top="9" Width="4" Height="2" Fill="#6FB1F5"/>
+                            </Canvas>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource CardHeaderText}" Text="CPU"/>
+                            <TextBlock Text="{Binding CpuName}" Foreground="#6C7078" FontSize="10.5" TextTrimming="CharacterEllipsis"
+                                       MaxWidth="150"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource HeroValue}" Text="{Binding CpuLoadText}"/>
+                    <ProgressBar Style="{StaticResource ThinProgressBar}" Value="{Binding CpuLoadValue, Mode=OneWay}" Foreground="#6FB1F5" Margin="0,0,0,10"/>
+
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="Sıcaklık"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding CpuTempText}" Foreground="{Binding CpuTempBrush}"/>
+                    </Grid>
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="Fan"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding CpuFanText}"/>
+                    </Grid>
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="Güç"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding CpuPowerText}"/>
+                    </Grid>
+                    <Grid Style="{StaticResource StatRow}"
+                          ToolTip="Doğrudan CPU sıcaklığı okunamadığında, aynı çip paketindeki entegre grafik biriminin SoC/VRM sensöründen yaklaşık bir değer.">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="SoC (yaklaşık)"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding CpuApproxSocText}"/>
+                    </Grid>
+
+                    <Border Style="{StaticResource SparkBox}">
+                        <Polyline Points="{Binding CpuTempSpark}" Stroke="{Binding CpuTempBrush}" StrokeThickness="1.75" Height="28" Stretch="Fill" HorizontalAlignment="Stretch"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- GPU -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource IconBadge}" Background="#332B4A">
+                            <Canvas Width="20" Height="20">
+                                <Rectangle Canvas.Left="1" Canvas.Top="5" Width="18" Height="10" RadiusX="2" RadiusY="2"
+                                           Stroke="#C9A6F7" StrokeThickness="1.6"/>
+                                <Ellipse Canvas.Left="3.5" Canvas.Top="7.5" Width="5" Height="5" Stroke="#C9A6F7" StrokeThickness="1.2"/>
+                                <Ellipse Canvas.Left="11.5" Canvas.Top="7.5" Width="5" Height="5" Stroke="#C9A6F7" StrokeThickness="1.2"/>
+                            </Canvas>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource CardHeaderText}" Text="GPU"/>
+                            <TextBlock Text="{Binding GpuName}" Foreground="#6C7078" FontSize="10.5" TextTrimming="CharacterEllipsis"
+                                       MaxWidth="150"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource HeroValue}" Text="{Binding GpuLoadText}"/>
+                    <ProgressBar Style="{StaticResource ThinProgressBar}" Value="{Binding GpuLoadValue, Mode=OneWay}" Foreground="#C9A6F7" Margin="0,0,0,10"/>
+
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="Sıcaklık"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding GpuTempText}" Foreground="{Binding GpuTempBrush}"/>
+                    </Grid>
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="Fan"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding GpuFanText}"/>
+                    </Grid>
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="VRAM"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding GpuVramText}"/>
+                    </Grid>
+
+                    <Border Style="{StaticResource SparkBox}">
+                        <Polyline Points="{Binding GpuTempSpark}" Stroke="{Binding GpuTempBrush}" StrokeThickness="1.75" Height="28" Stretch="Fill" HorizontalAlignment="Stretch"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- RAM -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource IconBadge}" Background="#1F3B37">
+                            <Canvas Width="20" Height="20">
+                                <Rectangle Canvas.Left="3" Canvas.Top="2" Width="14" Height="12" RadiusX="1.5" RadiusY="1.5"
+                                           Stroke="#6FDCC2" StrokeThickness="1.6"/>
+                                <Rectangle Canvas.Left="6" Canvas.Top="14" Width="2" Height="4" Fill="#6FDCC2"/>
+                                <Rectangle Canvas.Left="9.5" Canvas.Top="14" Width="2" Height="4" Fill="#6FDCC2"/>
+                                <Rectangle Canvas.Left="13" Canvas.Top="14" Width="2" Height="4" Fill="#6FDCC2"/>
+                            </Canvas>
+                        </Border>
+                        <TextBlock Style="{StaticResource CardHeaderText}" Text="RAM"/>
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource HeroValue}" Text="{Binding MemPercentText}"/>
+                    <ProgressBar Style="{StaticResource ThinProgressBar}" Value="{Binding MemPercentValue, Mode=OneWay}" Foreground="#6FDCC2" Margin="0,0,0,10"/>
+
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="Kullanılan"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding MemUsedText}"/>
+                    </Grid>
+                    <Grid Style="{StaticResource StatRow}">
+                        <TextBlock Style="{StaticResource StatLabel}" Text="Toplam"/>
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding MemTotalText}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Disk -->
+            <Border Grid.Column="3" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <Border Style="{StaticResource IconBadge}" Background="#4A3320">
+                            <Canvas Width="20" Height="20">
+                                <Ellipse Canvas.Left="1" Canvas.Top="1" Width="18" Height="18" Stroke="#F5B86F" StrokeThickness="1.6"/>
+                                <Ellipse Canvas.Left="8" Canvas.Top="8" Width="4" Height="4" Fill="#F5B86F"/>
+                            </Canvas>
+                        </Border>
+                        <TextBlock Style="{StaticResource CardHeaderText}" Text="Disk"/>
+                    </StackPanel>
+
+                    <ItemsControl ItemsSource="{Binding Disks}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="{Binding Name}" Foreground="#9BA0AA" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,0,0,6"/>
+                                    <Grid Margin="0,2">
+                                        <TextBlock Style="{StaticResource StatLabel}" Text="Okuma"/>
+                                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding ReadText}"/>
+                                    </Grid>
+                                    <Grid Margin="0,2">
+                                        <TextBlock Style="{StaticResource StatLabel}" Text="Yazma"/>
+                                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding WriteText}"/>
+                                    </Grid>
+                                    <Grid Margin="0,2">
+                                        <TextBlock Style="{StaticResource StatLabel}" Text="Sıcaklık"/>
+                                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding TempText}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Controls -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Style="{StaticResource ActionButton}" Content="CPU Testi Başlat" Command="{Binding StartCpuTestCommand}"/>
+                <Button Style="{StaticResource ActionButton}" Content="GPU Testi Başlat" Command="{Binding StartGpuTestCommand}"/>
+                <Button Style="{StaticResource ActionButton}" Content="Disk Testi Başlat" Command="{Binding StartDiskTestCommand}"/>
+                <Button Style="{StaticResource ActionButton}" Content="Durdur" Command="{Binding StopTestCommand}" Background="#9C3B3B"/>
+
+                <TextBlock Text="Süre" Foreground="#82868F" VerticalAlignment="Center" Margin="18,0,8,0"/>
+                <ComboBox Width="170" ItemsSource="{Binding DurationOptions}" SelectedItem="{Binding SelectedDuration}"
+                          DisplayMemberPath="Label"/>
+
+                <TextBlock Text="Uyarı °C" Foreground="#82868F" VerticalAlignment="Center" Margin="18,0,8,0"/>
+                <TextBox Width="46" Text="{Binding WarningTempC, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <TextBlock Text="Kritik °C" Foreground="#82868F" VerticalAlignment="Center" Margin="14,0,8,0"/>
+                <TextBox Width="46" Text="{Binding CriticalTempC, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <TextBlock Text="Aktif Test" Foreground="#82868F" VerticalAlignment="Center" Margin="18,0,8,0"/>
+                <TextBlock Text="{Binding ActiveTestLabel}" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Advanced diagnostics -->
+        <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+            <Expander Header="{Binding RawSensors.Count}" HeaderStringFormat="Gelişmiş: Ham Sensör Verileri ({0})">
+                <StackPanel Margin="0,12,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Filtrele" Foreground="#82868F" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding RawSensorFilter, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="280" HorizontalAlignment="Left"
+                                 ToolTip="Donanım, sensör adı, tür veya değere göre filtrele (örn. CPU, Temperature, Tctl)"/>
+                    </StackPanel>
+
+                    <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding RawSensorsView}">
+                            <ItemsControl.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" Foreground="#6FB1F5" FontSize="12.5" FontWeight="Bold" Margin="0,12,0,4"/>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ItemsControl.GroupStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="280"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Sensor}" Foreground="#D4D6DA" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Type}" Foreground="#82868F" FontSize="11"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding ValueText}" Foreground="White" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Expander>
+        </Border>
+
+        <!-- Log console -->
+        <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource SmallLinkButton}" Content="Günlüğü Dışa Aktar" Command="{Binding ExportLogCommand}"/>
+                    <TextBlock Style="{StaticResource CardHeaderText}" Text="Olay Günlüğü"/>
+                </DockPanel>
+                <ListBox x:Name="LogListBox"
+                         ItemsSource="{Binding LogEntries}"
+                         Background="#1C1E23"
+                         BorderThickness="0"
+                         FontFamily="Consolas"
+                         FontSize="12"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Foreground="{Binding Converter={StaticResource LogSeverityConverter}}" TextWrapping="Wrap"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
