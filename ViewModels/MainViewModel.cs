@@ -52,6 +52,7 @@ public sealed class MainViewModel : ObservableObject
         _safetyGuard.LogMessage += (_, msg) => EnqueueLog(msg);
 
         _stressTest.LogMessage += (_, msg) => EnqueueLog(msg);
+        _stressTest.TestStarted += (_, _) => _testActuallyStarted = true;
 
         RawSensorsView = CollectionViewSource.GetDefaultView(RawSensors);
         RawSensorsView.Filter = FilterRawSensor;
@@ -316,6 +317,13 @@ public sealed class MainViewModel : ObservableObject
 
     private static void FireAndForget(Task task) { }
 
+    private StressTestType? _activeTestType;
+    private bool _testActuallyStarted;
+    private DateTime _testStartedAt;
+    private double? _testPeakTempC;
+    private double _testLoadSum;
+    private int _testLoadSamples;
+
     private async Task StartTestAsync(StressTestType type)
     {
         if (IsTestRunning) return;
@@ -324,14 +332,67 @@ public sealed class MainViewModel : ObservableObject
         IsTestRunning = true;
         ActiveTestLabel = type.ToString();
 
+        _activeTestType = type;
+        _testActuallyStarted = false;
+        _testStartedAt = DateTime.Now;
+        _testPeakTempC = null;
+        _testLoadSum = 0;
+        _testLoadSamples = 0;
+
         TimeSpan? duration = SelectedDuration.Seconds > 0 ? TimeSpan.FromSeconds(SelectedDuration.Seconds) : null;
 
         await _stressTest.RunAsync(type, duration, _userTestCts.Token);
+
+        if (_testActuallyStarted)
+            LogTestSummary(type);
+        _activeTestType = null;
 
         _userTestCts?.Dispose();
         _userTestCts = null;
         IsTestRunning = false;
         ActiveTestLabel = "-";
+    }
+
+    /// <summary>Reports what actually happened during the just-finished test - requested so the
+    /// log isn't just "started/completed" but shows peak temperature and average load reached.</summary>
+    private void LogTestSummary(StressTestType type)
+    {
+        var elapsed = DateTime.Now - _testStartedAt;
+
+        if (type == StressTestType.Disk)
+        {
+            EnqueueLog($"Disk test özeti: süre {elapsed.TotalSeconds:0} sn (hız detayları yukarıda).");
+            return;
+        }
+
+        string peak = _testPeakTempC is { } p ? $"{p:0.#}°C" : "N/A";
+        string avgLoad = _testLoadSamples > 0 ? $"{_testLoadSum / _testLoadSamples:0.#}%" : "N/A";
+        EnqueueLog($"{type} test özeti: süre {elapsed.TotalSeconds:0} sn, zirve sıcaklık {peak}, ortalama yük {avgLoad}.");
+    }
+
+    private void TrackActiveTestStats(HardwareSnapshot s)
+    {
+        double? temp = _activeTestType switch
+        {
+            StressTestType.Cpu => s.Cpu.TemperatureC,
+            StressTestType.Gpu => s.Gpu.TemperatureC,
+            _ => null
+        };
+        double? load = _activeTestType switch
+        {
+            StressTestType.Cpu => s.Cpu.LoadPercent,
+            StressTestType.Gpu => s.Gpu.LoadPercent,
+            _ => null
+        };
+
+        if (temp is { } t && (_testPeakTempC is null || t > _testPeakTempC))
+            _testPeakTempC = t;
+
+        if (load is { } l)
+        {
+            _testLoadSum += l;
+            _testLoadSamples++;
+        }
     }
 
     private void StopTest()
@@ -359,6 +420,8 @@ public sealed class MainViewModel : ObservableObject
 
     private void ApplySnapshot(HardwareSnapshot s)
     {
+        TrackActiveTestStats(s);
+
         CpuName = s.Cpu.Name;
         CpuLoadText = FormatPercent(s.Cpu.LoadPercent);
         CpuLoadValue = s.Cpu.LoadPercent ?? 0;
