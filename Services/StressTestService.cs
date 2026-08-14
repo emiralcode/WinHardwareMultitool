@@ -185,6 +185,7 @@ public sealed class StressTestService
             window.Show();
 
             double angle = 0;
+            Exception? renderFailure = null;
             void OnRendering(object? s, EventArgs e)
             {
                 if (token.IsCancellationRequested)
@@ -195,21 +196,38 @@ public sealed class StressTestService
                     return;
                 }
 
-                angle += 2.0;
-                modelGroup.Transform = new Transform3DGroup
+                try
                 {
-                    Children =
+                    angle += 2.0;
+                    modelGroup.Transform = new Transform3DGroup
                     {
-                        new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), angle)),
-                        new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), angle * 0.7))
-                    }
-                };
+                        Children =
+                        {
+                            new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 1, 0), angle)),
+                            new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(1, 0, 0), angle * 0.7))
+                        }
+                    };
+                }
+                catch (Exception ex)
+                {
+                    // A single bad frame (e.g. a transient D3D/driver hiccup) shouldn't take the
+                    // whole render thread - and therefore the whole test - down with it. Stop
+                    // cleanly and surface the real exception through the same path as a normal failure.
+                    renderFailure = ex;
+                    CompositionTarget.Rendering -= OnRendering;
+                    window?.Close();
+                    dispatcher.InvokeShutdown();
+                }
             }
 
             CompositionTarget.Rendering += OnRendering;
 
             Dispatcher.Run();
-            tcs.TrySetResult();
+
+            if (renderFailure is not null)
+                tcs.TrySetException(renderFailure);
+            else
+                tcs.TrySetResult();
         }
         catch (Exception ex)
         {
