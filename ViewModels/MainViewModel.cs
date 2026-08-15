@@ -194,6 +194,9 @@ public sealed class MainViewModel : ObservableObject
 
     public ObservableCollection<RawSensorReading> RawSensors { get; } = new();
 
+    private bool _isRawSensorsExpanded;
+    public bool IsRawSensorsExpanded { get => _isRawSensorsExpanded; set => SetProperty(ref _isRawSensorsExpanded, value); }
+
     /// <summary>Grouped-by-hardware, filterable view over RawSensors for the diagnostics panel.</summary>
     public ICollectionView RawSensorsView { get; }
 
@@ -452,9 +455,24 @@ public sealed class MainViewModel : ObservableObject
         foreach (var disk in s.Disks)
             Disks.Add(new DiskRowViewModel(disk));
 
-        RawSensors.Clear();
-        foreach (var sensor in s.AllSensors)
-            RawSensors.Add(sensor);
+        // Only rebuild the 149-row diagnostics list while the panel is actually open - no point
+        // paying for it every second when collapsed, and it shrinks the exposure window for the
+        // grouped-view churn issue below.
+        if (IsRawSensorsExpanded)
+        {
+            // DeferRefresh batches the Clear()+Add() churn into a single group/filter recompute at
+            // the end of the using block. Without it, the grouped view (see RawSensorsView setup in
+            // the constructor) processes each collection-changed notification as it happens - at 149
+            // items rewritten every second, that leaves the ItemsControl's generator in an
+            // inconsistent state and throws "ItemsControl's Items collection is inconsistent with its
+            // ItemsSource".
+            using (RawSensorsView.DeferRefresh())
+            {
+                RawSensors.Clear();
+                foreach (var sensor in s.AllSensors)
+                    RawSensors.Add(sensor);
+            }
+        }
     }
 
     /// <summary>Appends a reading to a rolling history buffer and rebuilds the sparkline's point set.

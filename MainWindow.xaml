@@ -435,7 +435,8 @@
 
         <!-- Advanced diagnostics -->
         <Border Grid.Row="3" Style="{StaticResource CardStyle}">
-            <Expander Header="{Binding RawSensors.Count}" HeaderStringFormat="Gelişmiş: Ham Sensör Verileri ({0})">
+            <Expander Header="{Binding RawSensors.Count}" HeaderStringFormat="Gelişmiş: Ham Sensör Verileri ({0})"
+                      IsExpanded="{Binding IsRawSensorsExpanded, Mode=TwoWay}">
                 <StackPanel Margin="0,12,0,0">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                         <TextBlock Text="Filtrele" Foreground="#82868F" VerticalAlignment="Center" Margin="0,0,8,0"/>
