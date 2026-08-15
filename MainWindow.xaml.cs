@@ -42,8 +42,15 @@ public partial class MainWindow : Window
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _viewModel.LogEntries.CollectionChanged += (_, _) =>
         {
-            if (LogListBox.Items.Count > 0)
-                LogListBox.ScrollIntoView(LogListBox.Items[^1]);
+            // Deferred via BeginInvoke: calling ScrollIntoView synchronously inside a
+            // CollectionChanged handler can run before the ItemsControl's container generator has
+            // caught up with the new item, which WPF surfaces as "Items collection is inconsistent
+            // with ItemsSource" - the same failure mode hit (and fixed) in the diagnostics panel.
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (LogListBox.Items.Count > 0)
+                    LogListBox.ScrollIntoView(LogListBox.Items[^1]);
+            }), System.Windows.Threading.DispatcherPriority.Background);
         };
 
         _trayIcon.ShowRequested += (_, _) => RestoreFromTray();

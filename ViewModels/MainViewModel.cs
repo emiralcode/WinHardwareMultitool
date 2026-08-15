@@ -451,9 +451,7 @@ public sealed class MainViewModel : ObservableObject
         MemPercentText = s.Memory.UsedPercent is { } mp ? $"{mp:0.#} %" : "N/A";
         MemPercentValue = s.Memory.UsedPercent ?? 0;
 
-        Disks.Clear();
-        foreach (var disk in s.Disks)
-            Disks.Add(new DiskRowViewModel(disk));
+        UpdateDisks(s.Disks);
 
         // Only rebuild the 149-row diagnostics list while the panel is actually open - no point
         // paying for it every second when collapsed, and it shrinks the exposure window for the
@@ -472,6 +470,31 @@ public sealed class MainViewModel : ObservableObject
                 foreach (var sensor in s.AllSensors)
                     RawSensors.Add(sensor);
             }
+        }
+    }
+
+    /// <summary>Updates existing disk rows in place and only adds/removes when the physical disk
+    /// set itself changes, instead of Clear()+Add()'ing the whole collection every tick. The old
+    /// Clear()+Add() pattern reset the ItemsControl's collection on every 1-second poll forever,
+    /// which could throw "ItemsControl's Items collection is inconsistent with its ItemsSource"
+    /// under WPF's virtualizing panel - the same class of bug fixed for the raw sensor list.</summary>
+    private void UpdateDisks(List<DiskSnapshot> disks)
+    {
+        var seenNames = new HashSet<string>();
+        foreach (var disk in disks)
+        {
+            seenNames.Add(disk.Name);
+            var existing = Disks.FirstOrDefault(d => d.Name == disk.Name);
+            if (existing is null)
+                Disks.Add(new DiskRowViewModel(disk));
+            else
+                existing.Apply(disk);
+        }
+
+        for (int i = Disks.Count - 1; i >= 0; i--)
+        {
+            if (!seenNames.Contains(Disks[i].Name))
+                Disks.RemoveAt(i);
         }
     }
 
